@@ -70,6 +70,13 @@ MixCommonArgs::MixCommonArgs(const string & programName)
         }}
     });
 
+    addFlag({
+        .longName = "log-format",
+        .description = "Format of the logs. One of \"raw\" or \"json\", \"bar\" or \"bar-with-logs\".",
+        .labels = {"format"},
+        .handler = {[](std::string format) { setLogFormat(format); }},
+    });
+
     std::string cat = "Options to override configuration settings";
     globalConfig.convertToArgs(*this, cat);
 

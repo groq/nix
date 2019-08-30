@@ -52,33 +52,29 @@ class Logger
     friend struct Activity;
 
 public:
-
     struct Field
     {
         // FIXME: use std::variant.
         enum { tInt = 0, tString = 1 } type;
         uint64_t i = 0;
         std::string s;
-        Field(const std::string & s) : type(tString), s(s) { }
-        Field(const char * s) : type(tString), s(s) { }
-        Field(const uint64_t & i) : type(tInt), i(i) { }
+        Field(const std::string &s) : type(tString), s(s) {}
+        Field(const char *s) : type(tString), s(s) {}
+        Field(const uint64_t &i) : type(tInt), i(i) {}
     };
 
     typedef std::vector<Field> Fields;
 
-    virtual ~Logger() { }
+    virtual ~Logger() {}
 
     virtual void stop() { };
 
     // Whether the logger prints the whole build log
     virtual bool isVerbose() { return false; }
 
-    virtual void log(Verbosity lvl, const FormatOrString & fs) = 0;
+    virtual void log(Verbosity lvl, const FormatOrString &fs) = 0;
 
-    void log(const FormatOrString & fs)
-    {
-        log(lvlInfo, fs);
-    }
+    void log(const FormatOrString &fs) { log(lvlInfo, fs); }
 
     virtual void logEI(const ErrorInfo &ei) = 0;
 
@@ -88,12 +84,13 @@ public:
         logEI(ei);
     }
 
-    virtual void warn(const std::string & msg);
+    virtual void warn(const std::string &msg);
 
     virtual void startActivity(ActivityId act, Verbosity lvl, ActivityType type,
-        const std::string & s, const Fields & fields, ActivityId parent) { };
+                               const std::string &s, const Fields &fields,
+                               ActivityId parent){};
 
-    virtual void stopActivity(ActivityId act) { };
+    virtual void stopActivity(ActivityId act){};
 
     virtual void result(ActivityId act, ResultType type, const Fields & fields) { };
 
@@ -114,49 +111,52 @@ public:
 ActivityId getCurActivity();
 void setCurActivity(const ActivityId activityId);
 
-struct Activity
-{
-    Logger & logger;
+struct Activity {
+    Logger &logger;
 
     const ActivityId id;
 
-    Activity(Logger & logger, Verbosity lvl, ActivityType type, const std::string & s = "",
-        const Logger::Fields & fields = {}, ActivityId parent = getCurActivity());
+    Activity(Logger &logger, Verbosity lvl, ActivityType type,
+             const std::string &s = "", const Logger::Fields &fields = {},
+             ActivityId parent = getCurActivity());
 
-    Activity(Logger & logger, ActivityType type,
-        const Logger::Fields & fields = {}, ActivityId parent = getCurActivity())
-        : Activity(logger, lvlError, type, "", fields, parent) { };
+    Activity(Logger &logger, ActivityType type,
+             const Logger::Fields &fields = {},
+             ActivityId parent = getCurActivity())
+        : Activity(logger, lvlError, type, "", fields, parent){};
 
-    Activity(const Activity & act) = delete;
+    Activity(const Activity &act) = delete;
 
     ~Activity();
 
-    void progress(uint64_t done = 0, uint64_t expected = 0, uint64_t running = 0, uint64_t failed = 0) const
-    { result(resProgress, done, expected, running, failed); }
+    void progress(uint64_t done = 0, uint64_t expected = 0,
+                  uint64_t running = 0, uint64_t failed = 0) const {
+        result(resProgress, done, expected, running, failed);
+    }
 
-    void setExpected(ActivityType type2, uint64_t expected) const
-    { result(resSetExpected, type2, expected); }
+    void setExpected(ActivityType type2, uint64_t expected) const {
+        result(resSetExpected, type2, expected);
+    }
 
-    template<typename... Args>
-    void result(ResultType type, const Args & ... args) const
-    {
+    template <typename... Args>
+    void result(ResultType type, const Args &... args) const {
         Logger::Fields fields;
         nop{(fields.emplace_back(Logger::Field(args)), 1)...};
         result(type, fields);
     }
 
-    void result(ResultType type, const Logger::Fields & fields) const
-    {
+    void result(ResultType type, const Logger::Fields &fields) const {
         logger.result(id, type, fields);
     }
 
     friend class Logger;
 };
 
-struct PushActivity
-{
+struct PushActivity {
     const ActivityId prevAct;
-    PushActivity(ActivityId act) : prevAct(getCurActivity()) { setCurActivity(act); }
+    PushActivity(ActivityId act) : prevAct(getCurActivity()) {
+        setCurActivity(act);
+    }
     ~PushActivity() { setCurActivity(prevAct); }
 };
 
@@ -166,11 +166,9 @@ Logger * makeSimpleLogger(bool printBuildLogs = true);
 
 Logger * makeJSONLogger(Logger & prevLogger);
 
-bool handleJSONLogMessage(const std::string & msg,
-    const Activity & act, std::map<ActivityId, Activity> & activities,
-    bool trusted);
-
 extern Verbosity verbosity; /* suppress msgs > this */
+
+void setLogFormat(const string &logFormatStr);
 
 /* Print a message with the standard ErrorInfo format.
    In general, use these 'log' macros for reporting problems that may require user
@@ -213,8 +211,8 @@ inline void warn(const std::string & fs, const Args & ... args)
     logger->warn(f.str());
 }
 
-void warnOnce(bool & haveWarned, const FormatOrString & fs);
+void warnOnce(bool &haveWarned, const FormatOrString &fs);
 
-void writeToStderr(const string & s);
+void writeToStderr(const string &s);
 
-}
+} // namespace nix
