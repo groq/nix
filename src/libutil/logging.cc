@@ -35,10 +35,8 @@ void Logger::writeToStdout(std::string_view s)
     std::cout << s << "\n";
 }
 
-class SimpleLogger : public Logger
-{
-public:
-
+class SimpleLogger : public Logger {
+  public:
     bool systemd, tty;
     bool printBuildLogs;
 
@@ -62,11 +60,21 @@ public:
         if (systemd) {
             char c;
             switch (lvl) {
-            case lvlError: c = '3'; break;
-            case lvlWarn: c = '4'; break;
-            case lvlInfo: c = '5'; break;
-            case lvlTalkative: case lvlChatty: c = '6'; break;
-            default: c = '7';
+            case lvlError:
+                c = '3';
+                break;
+            case lvlWarn:
+                c = '4';
+                break;
+            case lvlInfo:
+                c = '5';
+                break;
+            case lvlTalkative:
+            case lvlChatty:
+                c = '6';
+                break;
+            default:
+                c = '7';
             }
             prefix = std::string("<") + c + ">";
         }
@@ -105,23 +113,21 @@ public:
 
 Verbosity verbosity = lvlInfo;
 
-void warnOnce(bool & haveWarned, const FormatOrString & fs)
-{
+void warnOnce(bool &haveWarned, const FormatOrString &fs) {
     if (!haveWarned) {
         warn(fs.s);
         haveWarned = true;
     }
 }
 
-void writeToStderr(const string & s)
-{
+void writeToStderr(const string &s) {
     try {
         writeFull(STDERR_FILENO, s, false);
-    } catch (SysError & e) {
+    } catch (SysError &e) {
         /* Ignore failing writes to stderr.  We need to ignore write
-           errors to ensure that cleanup code that logs to stderr runs
-           to completion if the other side of stderr has been closed
-           unexpectedly. */
+       errors to ensure that cleanup code that logs to stderr runs
+       to completion if the other side of stderr has been closed
+       unexpectedly. */
     }
 }
 
@@ -132,10 +138,10 @@ Logger * makeSimpleLogger(bool printBuildLogs)
 
 std::atomic<uint64_t> nextId{(uint64_t) getpid() << 32};
 
-Activity::Activity(Logger & logger, Verbosity lvl, ActivityType type,
-    const std::string & s, const Logger::Fields & fields, ActivityId parent)
-    : logger(logger), id(nextId++)
-{
+Activity::Activity(Logger &logger, Verbosity lvl, ActivityType type,
+                   const std::string &s, const Logger::Fields &fields,
+                   ActivityId parent)
+    : logger(logger), id(nextId++) {
     logger.startActivity(id, lvl, type, s, fields, parent);
 }
 
@@ -266,53 +272,7 @@ static Logger::Fields getFields(nlohmann::json & json)
     return fields;
 }
 
-bool handleJSONLogMessage(const std::string & msg,
-    const Activity & act, std::map<ActivityId, Activity> & activities, bool trusted)
-{
-    if (!hasPrefix(msg, "@nix ")) return false;
-
-    try {
-        auto json = nlohmann::json::parse(std::string(msg, 5));
-
-        std::string action = json["action"];
-
-        if (action == "start") {
-            auto type = (ActivityType) json["type"];
-            if (trusted || type == actFileTransfer)
-                activities.emplace(std::piecewise_construct,
-                    std::forward_as_tuple(json["id"]),
-                    std::forward_as_tuple(*logger, (Verbosity) json["level"], type,
-                        json["text"], getFields(json["fields"]), act.id));
-        }
-
-        else if (action == "stop")
-            activities.erase((ActivityId) json["id"]);
-
-        else if (action == "result") {
-            auto i = activities.find((ActivityId) json["id"]);
-            if (i != activities.end())
-                i->second.result((ResultType) json["type"], getFields(json["fields"]));
-        }
-
-        else if (action == "setPhase") {
-            std::string phase = json["phase"];
-            act.result(resSetPhase, phase);
-        }
-
-        else if (action == "msg") {
-            std::string msg = json["msg"];
-            logger->log((Verbosity) json["level"], msg);
-        }
-
-    } catch (std::exception & e) {
-        printError("bad JSON log message from builder: %s", e.what());
-    }
-
-    return true;
-}
-
-Activity::~Activity()
-{
+Activity::~Activity() {
     try {
         logger.stopActivity(id);
     } catch (...) {
@@ -320,4 +280,4 @@ Activity::~Activity()
     }
 }
 
-}
+} // namespace nix

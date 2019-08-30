@@ -60,6 +60,13 @@ MixCommonArgs::MixCommonArgs(const string & programName)
         .handler = {[](std::string format) { setLogFormat(format); }},
     });
 
+    // addFlag({
+    //     .longName = "log-format",
+    //     .description = "Format of the logs. One of \"raw\" or \"json\", \"bar\" or \"bar-with-logs\".",
+    //     .labels = {"format"},
+    //     .handler = {[](std::string format) { setLogFormat(format); }},
+    // });
+
     addFlag({
         .longName = "max-jobs",
         .shortName = 'j',
