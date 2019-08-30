@@ -47,7 +47,7 @@ MixCommonArgs::MixCommonArgs(const string & programName)
     mkFlag()
         .longName("log-format")
         .labels({"format"})
-        .description("Format of the logs. Can be \"raw\" (the default) or \"json\"")
+        .description("Format of the logs. One of \"raw\" or \"json\", \"bar\" or \"bar-with-logs\".")
         .handler([](std::string format) { setLogFormat(format); });
 
     std::string cat = "config";

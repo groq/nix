@@ -1,7 +1,6 @@
 #include "progress-bar.hh"
 #include "util.hh"
 #include "sync.hh"
-#include "store-api.hh"
 #include "names.hh"
 
 #include <atomic>
@@ -146,7 +145,7 @@ public:
         state->activitiesByType[type].its.emplace(act, i);
 
         if (type == actBuild) {
-            auto name = storePathToName(getS(fields, 0));
+            auto name = getS(fields, 4);
             if (hasSuffix(name, ".drv"))
                 name.resize(name.size() - 4);
             i->s = fmt("building " ANSI_BOLD "%s" ANSI_NORMAL, name);
@@ -161,7 +160,7 @@ public:
         }
 
         if (type == actSubstitute) {
-            auto name = storePathToName(getS(fields, 0));
+            auto name = getS(fields, 2);
             auto sub = getS(fields, 1);
             i->s = fmt(
                 hasPrefix(sub, "local")
@@ -171,7 +170,7 @@ public:
         }
 
         if (type == actPostBuildHook) {
-            auto name = storePathToName(getS(fields, 0));
+            auto name = getS(fields, 1);
             if (hasSuffix(name, ".drv"))
                 name.resize(name.size() - 4);
             i->s = fmt("post-build " ANSI_BOLD "%s" ANSI_NORMAL, name);
@@ -179,7 +178,7 @@ public:
         }
 
         if (type == actQueryPathInfo) {
-            auto name = storePathToName(getS(fields, 0));
+            auto name = getS(fields, 2);
             i->s = fmt("querying " ANSI_BOLD "%s" ANSI_NORMAL " on %s", name, getS(fields, 1));
         }
 
@@ -437,9 +436,14 @@ public:
     }
 };
 
+Logger* createProgressBar(bool printBuildLogs)
+{
+    return new ProgressBar(printBuildLogs, isatty(STDERR_FILENO));
+}
+
 void startProgressBar(bool printBuildLogs)
 {
-    logger = new ProgressBar(printBuildLogs, isatty(STDERR_FILENO));
+    logger = createProgressBar(printBuildLogs);
 }
 
 void stopProgressBar()

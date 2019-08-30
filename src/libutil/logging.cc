@@ -1,5 +1,6 @@
 #include "logging.hh"
 #include "util.hh"
+#include "progress-bar.hh"
 
 #include <atomic>
 #include <nlohmann/json.hpp>
@@ -71,6 +72,8 @@ Verbosity verbosity = lvlInfo;
 typedef enum {
     logFormatRaw,
     logFormatJSON,
+    logFormatBar,
+    logFormatBarWithLogs,
 } LogFormat;
 
 LogFormat logFormat = logFormatRaw;
@@ -81,6 +84,10 @@ LogFormat parseLogFormat(const string &logFormatStr)
       return logFormatRaw;
     else if (logFormatStr == "json")
       return logFormatJSON;
+    else if (logFormatStr == "bar")
+      return logFormatBar;
+    else if (logFormatStr == "bar-with-logs")
+      return logFormatBarWithLogs;
     throw Error(format("option 'log-format' has an invalid value '%s'") % logFormatStr);
 }
 
@@ -117,6 +124,10 @@ Logger * makeDefaultLogger()
             return new SimpleLogger();
         case logFormatJSON:
             return makeExternalJSONLogger(*(new SimpleLogger()));
+        case logFormatBar:
+            return createProgressBar();
+        case logFormatBarWithLogs:
+            return createProgressBar(true);
         default:
             throw Error(format("Invalid log format '%i'") % logFormat);
     }

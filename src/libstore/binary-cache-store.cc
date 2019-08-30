@@ -244,7 +244,7 @@ void BinaryCacheStore::queryPathInfoUncached(const Path & storePath,
 {
     auto uri = getUri();
     auto act = std::make_shared<Activity>(*logger, lvlTalkative, actQueryPathInfo,
-        fmt("querying info about '%s' on '%s'", storePath, uri), Logger::Fields{storePath, uri});
+        fmt("querying info about '%s' on '%s'", storePath, uri), Logger::Fields{storePath, uri, storePathToName(storePath)});
     PushActivity pact(act->id);
 
     auto narInfoFile = narInfoFileFor(storePath);

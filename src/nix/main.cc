@@ -131,6 +131,8 @@ void mainWrapped(int argc, char * * argv)
         if (legacy) return legacy(argc, argv);
     }
 
+    setLogFormat("bar");
+
     verbosity = lvlWarn;
     settings.verboseBuild = false;
 
@@ -143,8 +145,6 @@ void mainWrapped(int argc, char * * argv)
     if (!args.command) args.showHelpAndExit();
 
     Finally f([]() { stopProgressBar(); });
-
-    startProgressBar(args.printBuildLogs);
 
     if (args.useNet && !haveInternet()) {
         warn("you don't have Internet access; disabling some network-dependent features");
