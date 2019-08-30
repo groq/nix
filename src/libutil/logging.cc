@@ -68,6 +68,11 @@ public:
 
 Verbosity verbosity = lvlInfo;
 
+typedef enum {
+    logFormatRaw,
+    logFormatJSON,
+} LogFormat;
+
 LogFormat logFormat = logFormatRaw;
 
 LogFormat parseLogFormat(const string &logFormatStr)
@@ -111,7 +116,7 @@ Logger * makeDefaultLogger()
         case logFormatRaw:
             return new SimpleLogger();
         case logFormatJSON:
-            return makeJSONLogger(*(new SimpleLogger()));
+            return makeExternalJSONLogger(*(new SimpleLogger()));
         default:
             throw Error(format("Invalid log format '%i'") % logFormat);
     }
@@ -131,6 +136,14 @@ struct JSONLogger : Logger
     Logger & prevLogger;
 
     JSONLogger(Logger & prevLogger) : prevLogger(prevLogger) { }
+
+    virtual nlohmann::json jsonActivityType(ActivityType type) {
+        return type;
+    }
+
+    virtual nlohmann::json jsonResultType(ResultType type) {
+        return type;
+    }
 
     void addFields(nlohmann::json & json, const Fields & fields)
     {
@@ -166,7 +179,7 @@ struct JSONLogger : Logger
         json["action"] = "start";
         json["id"] = act;
         json["level"] = lvl;
-        json["type"] = type;
+        json["type"] = jsonActivityType(type);
         json["text"] = s;
         addFields(json, fields);
         // FIXME: handle parent
@@ -186,15 +199,65 @@ struct JSONLogger : Logger
         nlohmann::json json;
         json["action"] = "result";
         json["id"] = act;
-        json["type"] = type;
+        json["type"] = jsonResultType(type);
         addFields(json, fields);
         write(json);
     }
 };
 
+/**
+ * A json logger intended for external consumption
+ * (contrary to 'JSONLogger' which is an internal thing
+ */
+struct ExternalJSONLogger : JSONLogger
+{
+    ExternalJSONLogger(Logger & prevLogger) : JSONLogger(prevLogger) { }
+
+    nlohmann::json jsonActivityType(ActivityType type) override
+    {
+        switch (type) {
+            case actUnknown: return "actUnknown";
+            case actCopyPath: return "actCopyPath";
+            case actDownload: return "actDownload";
+            case actRealise: return "actRealise";
+            case actCopyPaths: return "actCopyPaths";
+            case actBuilds: return "actBuilds";
+            case actBuild: return "actBuild";
+            case actOptimiseStore: return "actOptimiseStore";
+            case actVerifyPaths: return "actVerifyPaths";
+            case actSubstitute: return "actSubstitute";
+            case actQueryPathInfo: return "actQueryPathInfo";
+            case actPostBuildHook: return "actPostBuildHook";
+            default: return "UnknownActivity";
+        }
+    }
+
+    nlohmann::json jsonResultType(ResultType type) override
+    {
+        switch (type) {
+            case resFileLinked: return "resFileLinked";
+            case resBuildLogLine: return "resBuildLogLine";
+            case resUntrustedPath: return "resUntrustedPath";
+            case resCorruptedPath: return "resCorruptedPath";
+            case resSetPhase: return "resSetPhase";
+            case resProgress: return "resProgress";
+            case resSetExpected: return "resSetExpected";
+            case resPostBuildLogLine: return "resPostBuildLogLine";
+            default: return "UnknownResultType";
+        }
+    }
+
+    void result(ActivityId act, ResultType type, const Fields & fields) override {};
+};
+
 Logger * makeJSONLogger(Logger & prevLogger)
 {
     return new JSONLogger(prevLogger);
+}
+
+Logger * makeExternalJSONLogger(Logger & prevLogger)
+{
+    return new ExternalJSONLogger(prevLogger);
 }
 
 static Logger::Fields getFields(nlohmann::json & json)

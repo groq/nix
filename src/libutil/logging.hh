@@ -40,11 +40,6 @@ typedef enum {
     resPostBuildLogLine = 107,
 } ResultType;
 
-typedef enum {
-    logFormatRaw,
-    logFormatJSON,
-} LogFormat;
-
 typedef uint64_t ActivityId;
 
 class Logger
@@ -140,13 +135,13 @@ Logger * makeDefaultLogger();
 
 Logger * makeJSONLogger(Logger & prevLogger);
 
+Logger * makeExternalJSONLogger(Logger & prevLogger);
+
 bool handleJSONLogMessage(const std::string & msg,
     const Activity & act, std::map<ActivityId, Activity> & activities,
     bool trusted);
 
 extern Verbosity verbosity; /* suppress msgs > this */
-
-extern LogFormat logFormat;
 
 void setLogFormat(const string &logFormatStr);
 
