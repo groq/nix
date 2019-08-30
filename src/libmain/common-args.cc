@@ -44,6 +44,12 @@ MixCommonArgs::MixCommonArgs(const string & programName)
             settings.set("max-jobs", s);
         });
 
+    mkFlag()
+        .longName("log-format")
+        .labels({"format"})
+        .description("Format of the logs. Can be \"raw\" (the default) or \"json\"")
+        .handler([](std::string format) { setLogFormat(format); });
+
     std::string cat = "config";
     globalConfig.convertToArgs(*this, cat);
 

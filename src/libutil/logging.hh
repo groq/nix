@@ -40,6 +40,11 @@ typedef enum {
     resPostBuildLogLine = 107,
 } ResultType;
 
+typedef enum {
+    logFormatRaw,
+    logFormatJSON,
+} LogFormat;
+
 typedef uint64_t ActivityId;
 
 class Logger
@@ -140,6 +145,10 @@ bool handleJSONLogMessage(const std::string & msg,
     bool trusted);
 
 extern Verbosity verbosity; /* suppress msgs > this */
+
+extern LogFormat logFormat;
+
+void setLogFormat(const string &logFormatStr);
 
 /* Print a message if the current log level is at least the specified
    level. Note that this has to be implemented as a macro to ensure

@@ -68,6 +68,23 @@ public:
 
 Verbosity verbosity = lvlInfo;
 
+LogFormat logFormat = logFormatRaw;
+
+LogFormat parseLogFormat(const string &logFormatStr)
+{
+    if (logFormatStr == "raw")
+      return logFormatRaw;
+    else if (logFormatStr == "json")
+      return logFormatJSON;
+    throw Error(format("option 'log-format' has an invalid value '%s'") % logFormatStr);
+}
+
+void setLogFormat(const string &logFormatStr)
+{
+    logFormat = parseLogFormat(logFormatStr);
+    logger = makeDefaultLogger();
+}
+
 void warnOnce(bool & haveWarned, const FormatOrString & fs)
 {
     if (!haveWarned) {
@@ -90,7 +107,14 @@ void writeToStderr(const string & s)
 
 Logger * makeDefaultLogger()
 {
-    return new SimpleLogger();
+    switch (logFormat) {
+        case logFormatRaw:
+            return new SimpleLogger();
+        case logFormatJSON:
+            return makeJSONLogger(*(new SimpleLogger()));
+        default:
+            throw Error(format("Invalid log format '%i'") % logFormat);
+    }
 }
 
 std::atomic<uint64_t> nextId{(uint64_t) getpid() << 32};
