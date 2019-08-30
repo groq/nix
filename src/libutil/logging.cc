@@ -35,10 +35,8 @@ void Logger::writeToStdout(std::string_view s)
     std::cout << s << "\n";
 }
 
-class SimpleLogger : public Logger
-{
-public:
-
+class SimpleLogger : public Logger {
+  public:
     bool systemd, tty;
     bool printBuildLogs;
 
@@ -62,11 +60,21 @@ public:
         if (systemd) {
             char c;
             switch (lvl) {
-            case lvlError: c = '3'; break;
-            case lvlWarn: c = '4'; break;
-            case lvlInfo: c = '5'; break;
-            case lvlTalkative: case lvlChatty: c = '6'; break;
-            default: c = '7';
+            case lvlError:
+                c = '3';
+                break;
+            case lvlWarn:
+                c = '4';
+                break;
+            case lvlInfo:
+                c = '5';
+                break;
+            case lvlTalkative:
+            case lvlChatty:
+                c = '6';
+                break;
+            default:
+                c = '7';
             }
             prefix = std::string("<") + c + ">";
         }
@@ -105,23 +113,21 @@ public:
 
 Verbosity verbosity = lvlInfo;
 
-void warnOnce(bool & haveWarned, const FormatOrString & fs)
-{
+void warnOnce(bool &haveWarned, const FormatOrString &fs) {
     if (!haveWarned) {
         warn(fs.s);
         haveWarned = true;
     }
 }
 
-void writeToStderr(const string & s)
-{
+void writeToStderr(const string &s) {
     try {
         writeFull(STDERR_FILENO, s, false);
-    } catch (SysError & e) {
+    } catch (SysError &e) {
         /* Ignore failing writes to stderr.  We need to ignore write
-           errors to ensure that cleanup code that logs to stderr runs
-           to completion if the other side of stderr has been closed
-           unexpectedly. */
+       errors to ensure that cleanup code that logs to stderr runs
+       to completion if the other side of stderr has been closed
+       unexpectedly. */
     }
 }
 
@@ -132,13 +138,14 @@ Logger * makeSimpleLogger(bool printBuildLogs)
 
 std::atomic<uint64_t> nextId{(uint64_t) getpid() << 32};
 
-Activity::Activity(Logger & logger, Verbosity lvl, ActivityType type,
-    const std::string & s, const Logger::Fields & fields, ActivityId parent)
-    : logger(logger), id(nextId++)
-{
+Activity::Activity(Logger &logger, Verbosity lvl, ActivityType type,
+                   const std::string &s, const Logger::Fields &fields,
+                   ActivityId parent)
+    : logger(logger), id(nextId++) {
     logger.startActivity(id, lvl, type, s, fields, parent);
 }
 
+<<<<<<< HEAD
 struct JSONLogger : Logger {
     Logger & prevLogger;
 
@@ -311,8 +318,7 @@ bool handleJSONLogMessage(const std::string & msg,
     return true;
 }
 
-Activity::~Activity()
-{
+Activity::~Activity() {
     try {
         logger.stopActivity(id);
     } catch (...) {
@@ -320,4 +326,4 @@ Activity::~Activity()
     }
 }
 
-}
+} // namespace nix

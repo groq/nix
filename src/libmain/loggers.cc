@@ -1,6 +1,11 @@
 #include "loggers.hh"
+#include "json-logger.hh"
+#include "logging.hh"
 #include "progress-bar.hh"
 #include "util.hh"
+
+#include <atomic>
+#include <nlohmann/json.hpp>
 
 namespace nix {
 
@@ -33,7 +38,7 @@ Logger * makeDefaultLogger() {
     case LogFormat::barWithLogs:
         return makeProgressBar(true);
     default:
-        abort();
+        throw Error(format("Invalid log format '%i'") % logFormat);
     }
 }
 
@@ -50,4 +55,4 @@ void createDefaultLogger() {
     logger = makeDefaultLogger();
 }
 
-}
+} // namespace nix
