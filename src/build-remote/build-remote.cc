@@ -18,6 +18,8 @@
 #include "derivations.hh"
 #include "local-store.hh"
 #include "legacy.hh"
+#include "loggers.hh"
+#include "json-logger.hh"
 
 using namespace nix;
 using std::cin;

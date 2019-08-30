@@ -50,8 +50,6 @@ endif
 
 $(d)/local-store.cc: $(d)/schema.sql.gen.hh $(d)/ca-specific-schema.sql.gen.hh
 
-$(d)/build.cc:
-
 %.gen.hh: %
 	@echo 'R"foo(' >> $@.tmp
 	$(trace-gen) cat $< >> $@.tmp

@@ -1,6 +1,11 @@
 #include "loggers.hh"
+#include "json-logger.hh"
+#include "logging.hh"
 #include "progress-bar.hh"
 #include "util.hh"
+
+#include <atomic>
+#include <nlohmann/json.hpp>
 
 namespace nix {
 
@@ -50,4 +55,4 @@ void createDefaultLogger() {
     logger = makeDefaultLogger();
 }
 
-}
+} // namespace nix
