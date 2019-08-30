@@ -16,6 +16,18 @@ static std::string getS(const std::vector<Logger::Field> & fields, size_t n)
     return fields[n].s;
 }
 
+/**
+ * Hack to get compatibility with older versions of the daemon which don't have
+ * a dedicated field for the path name in the logs
+*/
+static std::string getName(const std::vector<Logger::Field> & fields, size_t n) {
+    if (n >= fields.size())
+        // The first field always contains the name of the current drv/path
+        return getS(fields, 0);
+    else
+        return getS(fields, n);
+}
+
 static uint64_t getI(const std::vector<Logger::Field> & fields, size_t n)
 {
     assert(n < fields.size());
@@ -145,7 +157,7 @@ public:
         state->activitiesByType[type].its.emplace(act, i);
 
         if (type == actBuild) {
-            auto name = getS(fields, 4);
+            auto name = getName(fields, 4);
             if (hasSuffix(name, ".drv"))
                 name.resize(name.size() - 4);
             i->s = fmt("building " ANSI_BOLD "%s" ANSI_NORMAL, name);
@@ -160,7 +172,7 @@ public:
         }
 
         if (type == actSubstitute) {
-            auto name = getS(fields, 2);
+            auto name = getName(fields, 2);
             auto sub = getS(fields, 1);
             i->s = fmt(
                 hasPrefix(sub, "local")
@@ -170,7 +182,7 @@ public:
         }
 
         if (type == actPostBuildHook) {
-            auto name = getS(fields, 1);
+            auto name = getName(fields, 1);
             if (hasSuffix(name, ".drv"))
                 name.resize(name.size() - 4);
             i->s = fmt("post-build " ANSI_BOLD "%s" ANSI_NORMAL, name);
@@ -178,7 +190,7 @@ public:
         }
 
         if (type == actQueryPathInfo) {
-            auto name = getS(fields, 2);
+            auto name = getName(fields, 2);
             i->s = fmt("querying " ANSI_BOLD "%s" ANSI_NORMAL " on %s", name, getS(fields, 1));
         }
 
