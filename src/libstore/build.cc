@@ -13,6 +13,7 @@
 #include "nar-info.hh"
 #include "parsed-derivations.hh"
 #include "machines.hh"
+#include "json-logger.hh"
 
 #include <algorithm>
 #include <iostream>
@@ -1461,7 +1462,7 @@ void DerivationGoal::tryToBuild()
         fmt("building '%s'", drvPath);
         if (hook) msg += fmt(" on '%s'", machineName);
         act = std::make_unique<Activity>(*logger, lvlInfo, actBuild, msg,
-            Logger::Fields{drvPath, hook ? machineName : "", curRound, nrRounds});
+            Logger::Fields{drvPath, hook ? machineName : "", curRound, nrRounds, storePathToName(drvPath)});
         mcRunningBuilds = std::make_unique<MaintainCount<uint64_t>>(worker.runningBuilds);
         worker.updateProgress();
     };
@@ -1632,7 +1633,7 @@ void DerivationGoal::buildDone()
         if (settings.postBuildHook != "") {
             Activity act(*logger, lvlInfo, actPostBuildHook,
                 fmt("running post-build-hook '%s'", settings.postBuildHook),
-                Logger::Fields{drvPath});
+                Logger::Fields{drvPath, storePathToName(drvPath)});
             PushActivity pact(act.id);
             auto outputPaths = drv->outputPaths();
             std::map<std::string, std::string> hookEnvironment = getEnv();
@@ -3109,7 +3110,7 @@ void DerivationGoal::runChild()
         /* Execute the program.  This should not return. */
         if (drv->isBuiltin()) {
             try {
-                logger = makeJSONLogger(*logger);
+                logger = new JSONLogger();
 
                 BasicDerivation drv2(*drv);
                 for (auto & e : drv2.env)
@@ -4051,7 +4052,7 @@ void SubstitutionGoal::tryToRun()
             /* Wake up the worker loop when we're done. */
             Finally updateStats([this]() { outPipe.writeSide = -1; });
 
-            Activity act(*logger, actSubstitute, Logger::Fields{storePath, sub->getUri()});
+            Activity act(*logger, actSubstitute, Logger::Fields{storePath, sub->getUri(), storePathToName(storePath)});
             PushActivity pact(act.id);
 
             copyStorePath(ref<Store>(sub), ref<Store>(worker.store.shared_from_this()),
