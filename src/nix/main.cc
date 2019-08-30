@@ -52,7 +52,6 @@ std::string programPath;
 
 struct NixArgs : virtual MultiCommand, virtual MixCommonArgs
 {
-    bool printBuildLogs = false;
     bool useNet = true;
 
     NixArgs() : MultiCommand(*RegisterCommand::commands), MixCommonArgs("nix")
@@ -79,8 +78,8 @@ struct NixArgs : virtual MultiCommand, virtual MixCommonArgs
         mkFlag()
             .longName("print-build-logs")
             .shortName('L')
-            .description("print full build logs on stderr")
-            .set(&printBuildLogs, true);
+            .description("print full build logs on stderr. DEPRECATED, use '--log-format bar-with-logs' instead")
+            .handler([&]() { setLogFormat("bar-with-logs"); });
 
         mkFlag()
             .longName("version")
