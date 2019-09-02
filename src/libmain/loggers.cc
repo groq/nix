@@ -18,9 +18,7 @@ typedef enum {
 
 LogFormat logFormat = logFormatRaw;
 
-LogFormat
-parseLogFormat(const string& logFormatStr)
-{
+LogFormat parseLogFormat(const string &logFormatStr) {
     if (logFormatStr == "raw")
         return logFormatRaw;
     else if (logFormatStr == "json")
@@ -29,7 +27,8 @@ parseLogFormat(const string& logFormatStr)
         return logFormatBar;
     else if (logFormatStr == "bar-with-logs")
         return logFormatBarWithLogs;
-    throw Error(format("option 'log-format' has an invalid value '%s'") % logFormatStr);
+    throw Error(format("option 'log-format' has an invalid value '%s'") %
+                logFormatStr);
 }
 
 /**
@@ -37,13 +36,9 @@ parseLogFormat(const string& logFormatStr)
  * (contrary to 'JSONLogger' which is an internal thing
  */
 struct ExternalJSONLogger : JSONLogger {
-    ExternalJSONLogger(Logger& prevLogger)
-        : JSONLogger(prevLogger)
-    {
-    }
+    ExternalJSONLogger(Logger &prevLogger) : JSONLogger(prevLogger) {}
 
-    nlohmann::json jsonActivityType(ActivityType type) override
-    {
+    nlohmann::json jsonActivityType(ActivityType type) override {
         switch (type) {
         case actUnknown:
             return "actUnknown";
@@ -74,8 +69,7 @@ struct ExternalJSONLogger : JSONLogger {
         }
     }
 
-    nlohmann::json jsonResultType(ResultType type) override
-    {
+    nlohmann::json jsonResultType(ResultType type) override {
         switch (type) {
         case resFileLinked:
             return "resFileLinked";
@@ -98,12 +92,11 @@ struct ExternalJSONLogger : JSONLogger {
         }
     }
 
-    void result(ActivityId act, ResultType type, const Fields& fields) override {};
+    void result(ActivityId act, ResultType type,
+                const Fields &fields) override{};
 };
 
-Logger*
-makeDefaultLogger()
-{
+Logger *makeDefaultLogger() {
     switch (logFormat) {
     case logFormatRaw:
         return makeSimpleLogger();
@@ -118,8 +111,7 @@ makeDefaultLogger()
     }
 }
 
-void setLogFormat(const string& logFormatStr)
-{
+void setLogFormat(const string &logFormatStr) {
     logFormat = parseLogFormat(logFormatStr);
     logger = makeDefaultLogger();
 }

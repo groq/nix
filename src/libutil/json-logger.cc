@@ -6,26 +6,19 @@
 
 namespace nix {
 
-JSONLogger::JSONLogger(Logger& prevLogger)
-    : prevLogger(prevLogger)
-{
-}
+JSONLogger::JSONLogger(Logger &prevLogger) : prevLogger(prevLogger) {}
 
-JSONLogger::JSONLogger()
-    : JSONLogger(*makeSimpleLogger())
-{
-}
+JSONLogger::JSONLogger() : JSONLogger(*makeSimpleLogger()) {}
 
 nlohmann::json JSONLogger::jsonActivityType(ActivityType type) { return type; }
 
 nlohmann::json JSONLogger::jsonResultType(ResultType type) { return type; }
 
-void JSONLogger::addFields(nlohmann::json& json, const Fields& fields)
-{
+void JSONLogger::addFields(nlohmann::json &json, const Fields &fields) {
     if (fields.empty())
         return;
-    auto& arr = json["fields"] = nlohmann::json::array();
-    for (auto& f : fields)
+    auto &arr = json["fields"] = nlohmann::json::array();
+    for (auto &f : fields)
         if (f.type == Logger::Field::tInt)
             arr.push_back(f.i);
         else if (f.type == Logger::Field::tString)
@@ -34,13 +27,11 @@ void JSONLogger::addFields(nlohmann::json& json, const Fields& fields)
             abort();
 }
 
-void JSONLogger::write(const nlohmann::json& json)
-{
+void JSONLogger::write(const nlohmann::json &json) {
     prevLogger.log(lvlError, "@nix " + json.dump());
 }
 
-void JSONLogger::log(Verbosity lvl, const FormatOrString& fs)
-{
+void JSONLogger::log(Verbosity lvl, const FormatOrString &fs) {
     nlohmann::json json;
     json["action"] = "msg";
     json["level"] = lvl;
@@ -49,9 +40,8 @@ void JSONLogger::log(Verbosity lvl, const FormatOrString& fs)
 }
 
 void JSONLogger::startActivity(ActivityId act, Verbosity lvl, ActivityType type,
-    const std::string& s, const Fields& fields,
-    ActivityId parent)
-{
+                               const std::string &s, const Fields &fields,
+                               ActivityId parent) {
     nlohmann::json json;
     json["action"] = "start";
     json["id"] = act;
@@ -63,16 +53,14 @@ void JSONLogger::startActivity(ActivityId act, Verbosity lvl, ActivityType type,
     write(json);
 }
 
-void JSONLogger::stopActivity(ActivityId act)
-{
+void JSONLogger::stopActivity(ActivityId act) {
     nlohmann::json json;
     json["action"] = "stop";
     json["id"] = act;
     write(json);
 }
 
-void JSONLogger::result(ActivityId act, ResultType type, const Fields& fields)
-{
+void JSONLogger::result(ActivityId act, ResultType type, const Fields &fields) {
     nlohmann::json json;
     json["action"] = "result";
     json["id"] = act;
@@ -81,10 +69,9 @@ void JSONLogger::result(ActivityId act, ResultType type, const Fields& fields)
     write(json);
 }
 
-static Logger::Fields getFields(nlohmann::json& json)
-{
+static Logger::Fields getFields(nlohmann::json &json) {
     Logger::Fields fields;
-    for (auto& f : json) {
+    for (auto &f : json) {
         if (f.type() == nlohmann::json::value_t::number_unsigned)
             fields.emplace_back(Logger::Field(f.get<uint64_t>()));
         else if (f.type() == nlohmann::json::value_t::string)
@@ -95,10 +82,9 @@ static Logger::Fields getFields(nlohmann::json& json)
     return fields;
 }
 
-bool handleJSONLogMessage(const std::string& msg, const Activity& act,
-    std::map<ActivityId, Activity>& activities,
-    bool trusted)
-{
+bool handleJSONLogMessage(const std::string &msg, const Activity &act,
+                          std::map<ActivityId, Activity> &activities,
+                          bool trusted) {
     if (!hasPrefix(msg, "@nix "))
         return false;
 
@@ -112,9 +98,9 @@ bool handleJSONLogMessage(const std::string& msg, const Activity& act,
             if (trusted || type == actDownload)
                 activities.emplace(
                     std::piecewise_construct, std::forward_as_tuple(json["id"]),
-                    std::forward_as_tuple(*logger, (Verbosity)json["level"], type,
-                        json["text"], getFields(json["fields"]),
-                        act.id));
+                    std::forward_as_tuple(*logger, (Verbosity)json["level"],
+                                          type, json["text"],
+                                          getFields(json["fields"]), act.id));
         }
 
         else if (action == "stop")
@@ -123,7 +109,8 @@ bool handleJSONLogMessage(const std::string& msg, const Activity& act,
         else if (action == "result") {
             auto i = activities.find((ActivityId)json["id"]);
             if (i != activities.end())
-                i->second.result((ResultType)json["type"], getFields(json["fields"]));
+                i->second.result((ResultType)json["type"],
+                                 getFields(json["fields"]));
         }
 
         else if (action == "setPhase") {
@@ -136,7 +123,7 @@ bool handleJSONLogMessage(const std::string& msg, const Activity& act,
             logger->log((Verbosity)json["level"], msg);
         }
 
-    } catch (std::exception& e) {
+    } catch (std::exception &e) {
         printError("bad log message from builder: %s", e.what());
     }
 

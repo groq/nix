@@ -12,28 +12,28 @@ namespace nix {
  */
 class JSONLogger : public Logger {
 
-public:
-    Logger& prevLogger;
+  public:
+    Logger &prevLogger;
 
-    JSONLogger(Logger& prevLogger);
+    JSONLogger(Logger &prevLogger);
 
     JSONLogger();
 
-    void addFields(nlohmann::json& json, const Fields& fields);
+    void addFields(nlohmann::json &json, const Fields &fields);
 
-    void write(const nlohmann::json& json);
+    void write(const nlohmann::json &json);
 
-    void log(Verbosity lvl, const FormatOrString& fs);
+    void log(Verbosity lvl, const FormatOrString &fs);
 
     virtual void startActivity(ActivityId act, Verbosity lvl, ActivityType type,
-        const std::string& s, const Fields& fields,
-        ActivityId parent);
+                               const std::string &s, const Fields &fields,
+                               ActivityId parent);
 
     virtual void stopActivity(ActivityId act);
 
-    virtual void result(ActivityId act, ResultType type, const Fields& fields);
+    virtual void result(ActivityId act, ResultType type, const Fields &fields);
 
-protected:
+  protected:
     virtual nlohmann::json jsonActivityType(ActivityType type);
 
     virtual nlohmann::json jsonResultType(ResultType type);
@@ -46,8 +46,8 @@ protected:
  * This is used for internal ipc communication so that the parent nix process
  * can be aware of what's going on in its childs.
  */
-bool handleJSONLogMessage(const std::string& msg, const Activity& act,
-    std::map<ActivityId, Activity>& activities,
-    bool trusted);
+bool handleJSONLogMessage(const std::string &msg, const Activity &act,
+                          std::map<ActivityId, Activity> &activities,
+                          bool trusted);
 
 } // namespace nix
