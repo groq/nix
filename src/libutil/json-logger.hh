@@ -32,11 +32,6 @@ class JSONLogger : public Logger {
     virtual void stopActivity(ActivityId act);
 
     virtual void result(ActivityId act, ResultType type, const Fields &fields);
-
-  protected:
-    virtual nlohmann::json jsonActivityType(ActivityType type);
-
-    virtual nlohmann::json jsonResultType(ResultType type);
 };
 
 /**

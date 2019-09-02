@@ -10,10 +10,6 @@ JSONLogger::JSONLogger(Logger &prevLogger) : prevLogger(prevLogger) {}
 
 JSONLogger::JSONLogger() : JSONLogger(*makeSimpleLogger()) {}
 
-nlohmann::json JSONLogger::jsonActivityType(ActivityType type) { return type; }
-
-nlohmann::json JSONLogger::jsonResultType(ResultType type) { return type; }
-
 void JSONLogger::addFields(nlohmann::json &json, const Fields &fields) {
     if (fields.empty())
         return;
@@ -46,7 +42,7 @@ void JSONLogger::startActivity(ActivityId act, Verbosity lvl, ActivityType type,
     json["action"] = "start";
     json["id"] = act;
     json["level"] = lvl;
-    json["type"] = jsonActivityType(type);
+    json["type"] = type;
     json["text"] = s;
     addFields(json, fields);
     // FIXME: handle parent
@@ -64,7 +60,7 @@ void JSONLogger::result(ActivityId act, ResultType type, const Fields &fields) {
     nlohmann::json json;
     json["action"] = "result";
     json["id"] = act;
-    json["type"] = jsonResultType(type);
+    json["type"] = type;
     addFields(json, fields);
     write(json);
 }
