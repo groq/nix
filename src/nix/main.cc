@@ -78,7 +78,7 @@ struct NixArgs : virtual MultiCommand, virtual MixCommonArgs
         mkFlag()
             .longName("print-build-logs")
             .shortName('L')
-            .description("print full build logs on stderr. DEPRECATED, use '--log-format bar-with-logs' instead")
+            .description("print full build logs on stderr.")
             .handler([&]() { setLogFormat("bar-with-logs"); });
 
         mkFlag()
