@@ -1,5 +1,11 @@
 #include "loggers.hh"
+#include "json-logger.hh"
+#include "logging.hh"
 #include "progress-bar.hh"
+#include "util.hh"
+
+#include <atomic>
+#include <nlohmann/json.hpp>
 
 namespace nix {
 
@@ -26,7 +32,7 @@ Logger *makeDefaultLogger() {
     case LogFormat::rawWithLogs:
         return makeSimpleLogger(true);
     case LogFormat::internalJson:
-        return makeJSONLogger(*makeSimpleLogger());
+        return new JSONLogger();
     case LogFormat::bar:
         return makeProgressBar();
     case LogFormat::barWithLogs:
