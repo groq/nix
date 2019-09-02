@@ -13,6 +13,7 @@
 #include "nar-info.hh"
 #include "parsed-derivations.hh"
 #include "machines.hh"
+#include "json-logger.hh"
 
 #include <algorithm>
 #include <iostream>
@@ -3109,7 +3110,7 @@ void DerivationGoal::runChild()
         /* Execute the program.  This should not return. */
         if (drv->isBuiltin()) {
             try {
-                logger = makeJSONLogger(*logger);
+                logger = new JSONLogger();
 
                 BasicDerivation drv2(*drv);
                 for (auto & e : drv2.env)

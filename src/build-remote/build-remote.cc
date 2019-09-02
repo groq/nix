@@ -18,6 +18,8 @@
 #include "derivations.hh"
 #include "local-store.hh"
 #include "legacy.hh"
+#include "loggers.hh"
+#include "json-logger.hh"
 
 using namespace nix;
 using std::cin;
@@ -47,7 +49,7 @@ static bool allSupportedLocally(const std::set<std::string>& requiredFeatures) {
 static int _main(int argc, char * * argv)
 {
     {
-        logger = makeJSONLogger(*logger);
+        logger = new JSONLogger(*logger);
 
         /* Ensure we don't get any SSH passphrase or host key popups. */
         unsetenv("DISPLAY");
