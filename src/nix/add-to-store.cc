@@ -54,7 +54,7 @@ struct CmdAddToStore : MixDryRun, StoreCommand
         if (!dryRun)
             store->addToStore(info, sink.s);
 
-        std::cout << fmt("%s\n", info.path);
+        logger->stdout("%s", info.path);
     }
 };
 
