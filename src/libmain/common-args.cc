@@ -1,5 +1,6 @@
 #include "common-args.hh"
 #include "globals.hh"
+#include "loggers.hh"
 
 namespace nix {
 
@@ -34,6 +35,13 @@ MixCommonArgs::MixCommonArgs(const string & programName)
                 warn(e.what());
             }
         });
+
+    mkFlag()
+        .longName("log-format")
+        .description("Format of the logs. One of \"raw\", \"internal-json\", \"bar\" "
+                     "or \"bar-with-logs\".")
+        .labels({"format"})
+        .handler([](std::string format) { setLogFormat(format); });
 
     mkFlag()
         .longName("max-jobs")

@@ -1103,6 +1103,8 @@ static int _main(int argc, char * * argv)
 
         op(opFlags, opArgs);
 
+        logger->stop();
+
         return 0;
     }
 }
