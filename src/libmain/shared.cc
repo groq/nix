@@ -2,6 +2,7 @@
 #include "shared.hh"
 #include "store-api.hh"
 #include "util.hh"
+#include "loggers.hh"
 
 #include <algorithm>
 #include <cctype>
@@ -213,7 +214,7 @@ LegacyArgs::LegacyArgs(const std::string & programName,
         .longName("no-build-output")
         .shortName('Q')
         .description("do not show build output")
-        .set(&settings.verboseBuild, false);
+        .handler([&]() {setLogFormat(LogFormat::raw); });
 
     mkFlag()
         .longName("keep-failed")
