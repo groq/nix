@@ -3763,6 +3763,12 @@ Path DerivationGoal::addHashRewrite(const Path & path)
 
 void DerivationGoal::done(BuildResult::Status status, const string & msg)
 {
+    // GROQ: emit an explicit end-of-build marker.
+    // https://git.groq.io/code/Groq/-/issues/5169
+    // act will be null if the build didn't start.
+    if (act)
+        act->result(resBuildLogLine, "GROQ HACK - DerivationGoal::done - GROQ HACK");
+
     result.status = status;
     result.errorMsg = msg;
     amDone(result.success() ? ecSuccess : ecFailed);
