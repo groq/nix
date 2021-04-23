@@ -70,11 +70,12 @@ MixCommonArgs::MixCommonArgs(const string & programName)
         }}
     });
 
-    mkFlag()
-        .longName("log-format")
-        .labels({"format"})
-        .description("Format of the logs. One of \"raw\" or \"json\", \"bar\" or \"bar-with-logs\".")
-        .handler([](std::string format) { setLogFormat(format); });
+    addFlag({
+        .longName = "log-format",
+        .description = "Format of the logs. One of \"raw\" or \"json\", \"bar\" or \"bar-with-logs\".",
+        .labels = {"format"},
+        .handler = {[](std::string format) { setLogFormat(format); }},
+    });
 
     std::string cat = "Options to override configuration settings";
     globalConfig.convertToArgs(*this, cat);

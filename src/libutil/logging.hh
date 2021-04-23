@@ -72,7 +72,6 @@ public:
     // Whether the logger prints the whole build log
     virtual bool isVerbose() { return false; }
 
-    virtual void log(Verbosity lvl, const FormatOrString & fs) = 0;
     virtual void log(Verbosity lvl, const FormatOrString &fs) = 0;
 
     void log(const FormatOrString &fs) { log(lvlInfo, fs); }
@@ -85,7 +84,6 @@ public:
         logEI(ei);
     }
 
-    virtual void warn(const std::string & msg);
     virtual void warn(const std::string &msg);
 
     virtual void startActivity(ActivityId act, Verbosity lvl, ActivityType type,
@@ -108,8 +106,6 @@ public:
 
     virtual std::optional<char> ask(std::string_view s)
     { return {}; }
-    virtual void result(ActivityId act, ResultType type,
-                        const Fields &fields){};
 };
 
 ActivityId getCurActivity();
@@ -169,10 +165,6 @@ extern Logger * logger;
 Logger * makeSimpleLogger(bool printBuildLogs = true);
 
 Logger * makeJSONLogger(Logger & prevLogger);
-
-bool handleJSONLogMessage(const std::string & msg,
-    const Activity & act, std::map<ActivityId, Activity> & activities,
-    bool trusted);
 
 extern Verbosity verbosity; /* suppress msgs > this */
 

@@ -38,7 +38,7 @@ Logger * makeDefaultLogger() {
     case LogFormat::barWithLogs:
         return makeProgressBar(true);
     default:
-        throw Error(format("Invalid log format '%i'") % logFormat);
+        abort();
     }
 }
 
