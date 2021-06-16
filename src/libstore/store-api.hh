@@ -728,7 +728,8 @@ void checkStoreName(const string & name);
 
 /* Copy a path from one store to another. */
 void copyStorePath(ref<Store> srcStore, ref<Store> dstStore,
-    const Path & storePath, RepairFlag repair = NoRepair, CheckSigsFlag checkSigs = CheckSigs);
+    const Path & storePath, RepairFlag repair = NoRepair, CheckSigsFlag checkSigs = CheckSigs,
+    bool checkedPaths = false);
 
 
 /* Copy store paths from one store to another. The paths may be copied
