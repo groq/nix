@@ -751,7 +751,8 @@ protected:
 
 /* Copy a path from one store to another. */
 void copyStorePath(ref<Store> srcStore, ref<Store> dstStore,
-    const StorePath & storePath, RepairFlag repair = NoRepair, CheckSigsFlag checkSigs = CheckSigs);
+    const StorePath & storePath, RepairFlag repair = NoRepair, CheckSigsFlag checkSigs = CheckSigs,
+    bool checkedPaths = false);
 
 
 /* Copy store paths from one store to another. The paths may be copied
