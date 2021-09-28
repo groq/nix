@@ -12,8 +12,99 @@
 
 #include <regex>
 
+#include <sys/stat.h>
+#include <string.h>
+#include "groq-config.hh"
+
+
 namespace nix {
 
+
+static bool startswith(const string &str, const string &prefix)
+{
+    return str.compare(0, prefix.size(), prefix) == 0;
+}
+
+static bool endswith(const string &str, const string &suffix)
+{
+    return str.size() >= suffix.size()
+        && str.compare(str.size() - suffix.size(), string::npos, suffix) == 0;
+}
+
+static bool isSource(const Path &path)
+{
+    for (const string &suffix : source_suffixes) {
+        if (endswith(path, suffix))
+            return true;
+    }
+    return false;
+}
+
+static bool containsSource(const Path &path)
+{
+    struct stat st;
+    if (lstat(path.c_str(), &st))
+        throw SysError(format("getting attributes of path '%1%'") % path);
+    if (S_ISREG(st.st_mode)) {
+        return isSource(path);
+    } else if (S_ISDIR(st.st_mode)) {
+        for (auto & entry : readDirectory(path)) {
+            if (isSource(entry.name)) {
+                return true;
+            }
+        }
+        return false;
+    } else {
+        return false;
+    }
+}
+
+static bool pathCanHaveSource(const Path &path)
+{
+    const string name = storePathToName(path);
+    for (const string &ok : source_allowed_names) {
+        if (name == ok) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static bool isPathOk(const Path &path)
+{
+    return pathCanHaveSource(path) || !containsSource(path);
+}
+
+static const Path *isCopyOk(const string &dstUri, const PathSet & storePaths)
+{
+    // std::cerr << "dstUri: " << dstUri << '\n';
+    // for (const Path &path : storePaths) {
+    //     std::cerr << "isCopyOk: " << path << '\n';
+    // }
+
+    // These are nixpkgs magic strings for when you're copying to localhost,
+    // they're used below too.
+    if (dstUri == "local" || dstUri == "daemon") {
+        // If it's copying to me, assume I'm trustable.
+        return nullptr;
+    }
+    for (const string &pattern : source_allowed_destinations) {
+        if (endswith(pattern, "*")) {
+            if (startswith(dstUri, pattern.substr(0, pattern.size() - 1))) {
+                return nullptr;
+            }
+        } else {
+            if (dstUri == pattern) {
+                return nullptr;
+            }
+        }
+    }
+    for (const Path &path : storePaths) {
+        if (!isPathOk(path))
+            return &path;
+    }
+    return nullptr;
+}
 
 bool Store::isInStore(const Path & path) const
 {
@@ -735,10 +826,23 @@ const Store::Stats & Store::getStats()
 
 
 void copyStorePath(ref<Store> srcStore, ref<Store> dstStore,
-    const StorePath & storePath, RepairFlag repair, CheckSigsFlag checkSigs)
+    const StorePath & storePath, RepairFlag repair, CheckSigsFlag checkSigs,
+    // copyStorePath is copied from build.cc on individual paths.
+    bool checkedPaths)
 {
     auto srcUri = srcStore->getUri();
     auto dstUri = dstStore->getUri();
+
+    if (!checkedPaths) {
+        PathSet storePaths = {storePath};
+        const Path *refused = isCopyOk(dstStore->getUri(), storePaths);
+        if (refused) {
+            throw Error(
+                format("not allowed to copy source '%s' to '%s'")
+                % *refused % dstStore->getUri());
+        }
+    }
+
 
     Activity act(*logger, lvlInfo, actCopyPath,
         srcUri == "local" || srcUri == "daemon"
@@ -818,6 +922,13 @@ std::map<StorePath, StorePath> copyPaths(ref<Store> srcStore, ref<Store> dstStor
 {
     auto valid = dstStore->queryValidPaths(storePaths, substitute);
 
+    const Path *refused = isCopyOk(dstStore->getUri(), storePaths);
+    if (refused) {
+        throw Error(
+            format("not allowed to copy source '%s' to '%s'")
+            % *refused % dstStore->getUri());
+    }
+
     StorePathSet missing;
     for (auto & path : storePaths)
         if (!valid.count(path)) missing.insert(path);
@@ -886,7 +997,7 @@ std::map<StorePath, StorePath> copyPaths(ref<Store> srcStore, ref<Store> dstStor
                 MaintainCount<decltype(nrRunning)> mc(nrRunning);
                 showProgress();
                 try {
-                    copyStorePath(srcStore, dstStore, storePath, repair, checkSigs);
+                    copyStorePath(srcStore, dstStore, storePath, repair, checkSigs, true);
                 } catch (Error &e) {
                     nrFailed++;
                     if (!settings.keepGoing)
