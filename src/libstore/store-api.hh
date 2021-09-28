@@ -764,7 +764,8 @@ void copyStorePath(
     Store & dstStore,
     const StorePath & storePath,
     RepairFlag repair = NoRepair,
-    CheckSigsFlag checkSigs = CheckSigs);
+    CheckSigsFlag checkSigs = CheckSigs,
+    bool checkedPaths = false);
 
 
 /* Copy store paths from one store to another. The paths may be copied
