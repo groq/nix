@@ -153,6 +153,10 @@ static ref<Store> openUncachedStore()
 
 static void daemonLoop()
 {
+    // for (auto & i : users)
+    Strings junk = settings.trustedUsers;
+    for (auto &u : junk)
+      printInfo(format("daemonLoop, trusted user: %1%") % u);
     if (chdir("/") == -1)
         throw SysError("cannot change current directory");
 
@@ -212,7 +216,7 @@ static void daemonLoop()
             if ((!trusted && !matchUser(user, group, allowedUsers)) || group == settings.buildUsersGroup)
                 throw Error("user '%1%' is not allowed to connect to the Nix daemon", user);
 
-            printInfo(format((string) "accepted connection from pid %1%, user %2%" + (trusted ? " (trusted)" : ""))
+            printError(format((string) "accepted connection from pid %1%, user %2%" + (trusted ? " (trusted)" : " (untrusted)"))
                 % (peer.pidKnown ? std::to_string(peer.pid) : "<unknown>")
                 % (peer.uidKnown ? user : "<unknown>"));
 
@@ -241,6 +245,8 @@ static void daemonLoop()
                 //  Handle the connection.
                 FdSource from(remote.get());
                 FdSink to(remote.get());
+                printError("child: processConnection");
+                // throw Error("child: processConnection");
                 processConnection(openUncachedStore(), from, to, trusted, NotRecursive, [&](Store & store) {
 #if 0
                     /* Prevent users from doing something very dangerous. */
@@ -302,6 +308,8 @@ static void runDaemon(bool stdio)
             /* Auth hook is empty because in this mode we blindly trust the
                standard streams. Limiting access to those is explicitly
                not `nix-daemon`'s responsibility. */
+            printError("runDaemon: processConnection, Trusted");
+            throw Error("runDaemon: processConnection");
             processConnection(openUncachedStore(), from, to, Trusted, NotRecursive, [&](Store & _){});
         }
     } else

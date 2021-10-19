@@ -73,6 +73,8 @@ static bool pathCanHaveSource(const StorePath &path)
 
 static bool isPathOk(const StorePath &path)
 {
+    // TODO(elaforge): surely there is an official way to convert a StorePath
+    // to real path?
     string pathc{path.to_string()};
     pathc = "/nix/store/" + pathc;
     return pathCanHaveSource(path) || !containsSource(pathc);

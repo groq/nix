@@ -265,6 +265,7 @@ static void performOp(TunnelLogger * logger, ref<Store> store,
     TrustedFlag trusted, RecursiveFlag recursive, unsigned int clientVersion,
     Source & from, BufferedSink & to, unsigned int op)
 {
+    logger->log(lvlNotice, fmt("libstore/daemon.cc performOp: trusted: %s", trusted ? "yes" : "no"));
     switch (op) {
 
     case wopIsValidPath: {
@@ -952,7 +953,7 @@ void processConnection(
 
     Finally finally([&]() {
         _isInterrupted = false;
-        prevLogger->log(lvlDebug, fmt("%d operations", opCount));
+        prevLogger->log(lvlNotice, fmt("%d operations", opCount));
     });
 
     if (GET_PROTOCOL_MINOR(clientVersion) >= 14 && readInt(from)) {
@@ -962,6 +963,7 @@ void processConnection(
 
     readInt(from); // obsolete reserveSpace
 
+    prevLogger->log(lvlNotice, "tunnelLogger->startWork");
     /* Send startup error messages to the client. */
     tunnelLogger->startWork();
 
@@ -987,6 +989,10 @@ void processConnection(
 
             opCount++;
 
+            prevLogger->log(lvlNotice,
+                fmt("prevLogger performOp: %d, trust:%d", op, trusted));
+            tunnelLogger->log(lvlNotice,
+                fmt("tunnelLogger performOp: %d, trust:%d", op, trusted));
             try {
                 performOp(tunnelLogger, store, trusted, recursive, clientVersion, from, to, op);
             } catch (Error & e) {

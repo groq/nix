@@ -131,9 +131,12 @@ void AbstractConfig::applyConfig(const std::string & contents, const std::string
 void AbstractConfig::applyConfigFile(const Path & path)
 {
     try {
+        printInfo(format("loading config %1%") % path);
         string contents = readFile(path);
         applyConfig(contents, path);
-    } catch (SysError &) { }
+    } catch (SysError &) {
+        printError(format("failed to load config %1%") % path);
+    }
 }
 
 void Config::resetOverridden()

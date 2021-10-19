@@ -1369,6 +1369,8 @@ void LocalDerivationGoal::startDaemon()
                 FdSource from(remote.get());
                 FdSink to(remote.get());
                 try {
+                    printError("local-derivation-goal processConnection");
+                    throw SysError("local-derivation-goal processConnection");
                     daemon::processConnection(store, from, to,
                         daemon::NotTrusted, daemon::Recursive,
                         [&](Store & store) { store.createUser("nobody", 65535); });
