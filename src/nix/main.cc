@@ -54,7 +54,6 @@ std::string programPath;
 
 struct NixArgs : virtual MultiCommand, virtual MixCommonArgs
 {
-    bool printBuildLogs = false;
     bool useNet = true;
 
     NixArgs() : MultiCommand(*RegisterCommand::commands), MixCommonArgs("nix")
